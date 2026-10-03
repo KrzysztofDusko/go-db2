@@ -13,9 +13,11 @@
 
 ---
 
-## 🚀 Overview
+## Overview
 
 `go-db2` is a high-performance, open-source database driver written **100% in Pure Go** to connect Go applications directly to **IBM Db2** over TCP/TLS using the native **DRDA** (*Distributed Relational Database Architecture*) and **DDM** (*Distributed Data Management*) wire protocols.
+
+> **Disclaimer:** `go-db2` is an independent, community-driven open-source project. It is **not** maintained, endorsed, sponsored, or certified by International Business Machines Corporation (IBM), and it is **not** the official IBM Db2 driver for Go. IBM and Db2 are registered trademarks of International Business Machines Corporation.
 
 ### Why `go-db2`?
 - **100% Pure Go (`CGO_ENABLED=0`)**: Zero CGO, zero `unsafe`, and zero external C library dependencies. No need to install IBM's heavy `clidriver` or ODBC components.
@@ -25,38 +27,38 @@
 
 ---
 
-## ✨ Feature Matrix
+## Feature Matrix
 
 | Feature | Status | Description |
 | :--- | :---: | :--- |
-| **Pure Go Engine** | ✅ Supported | 100% Go implementation with native DRDA/DDM binary protocol parser |
-| **Authentication & Handshake** | ✅ Supported | SECMEC 3 (Plain), SECMEC 9 (Diffie-Hellman + DES), EBCDIC CP500 exchange |
-| **TLS/SSL & mTLS Encryption** | ✅ Supported | Native TLS 1.2+ (`crypto/tls`) with custom Root CAs and client certificate/key authentication |
-| **`database/sql` Registration** | ✅ Supported | `sql.Register("db2", ...)` with standard URL and Key-Value DSN parsers |
-| **Connection Pooling & Liveness** | ✅ Supported | `db.PingContext()`, `driver.Connector`, transparent pool lifecycle management |
-| **Transactions & ACID Isolation** | ✅ Supported | `db.BeginTx()`, `tx.Commit()`, `tx.Rollback()` with strict auto-commit management |
-| **DDL & DML Execution** | ✅ Supported | `db.ExecContext()` for `CREATE`, `DROP`, `INSERT`, `UPDATE`, `DELETE` |
-| **Query & Streaming Rows** | ✅ Supported | `db.QueryContext()`, `db.QueryRowContext()`, `rows.Scan()`, `rows.Columns()` |
-| **Type Conversions & NULLs** | ✅ Supported | Integers, Varchars, Floats, Dates, Timestamps, Decimals, Booleans, `sql.Null*` |
-| **Prepared Statements & Params** | ✅ Supported | Positional `?` parameter binding (`FDODSC`, `FDODTA`, `SQLDTA`) with single roundtrip reuse |
-| **LOBs (BLOB / CLOB / DBCLOB)** | ✅ Supported | Large binary and text streaming via DRDA `EXTDTA` (`0x146C`) packet collection |
-| **Stored Procedures & `sql.Out`** | ✅ Supported | `CALL procedure(?, ...)` supporting `IN`, `OUT`, and `INOUT` parameters via `SQLDTARD` |
-| **Multi-Result Sets** | ✅ Supported | Full `driver.RowsNextResultSet` implementation for procedures returning multiple cursors |
-| **`Result.LastInsertId()`** | ✅ Supported | Automatic identity recovery on `INSERT` via `IDENTITY_VAL_LOCAL()` |
-| **Extended Data Types** | ✅ Supported | `DECFLOAT(16/34)` (IEEE 754-2008 DPD), `XML` documents, `TIMESTAMP WITH TIME ZONE` |
-| **Graphic & DBCS Types** | ✅ Supported | `GRAPHIC`, `VARGRAPHIC`, `LONG VARGRAPHIC`, `DBCLOB`, `CODEUNITS32` |
-| **Batch / Array Parameter DML** | ✅ Supported | High-throughput bulk operations with primitive slices (`[]int`, `[]string`, `[]float64`) |
-| **Admin DB Management & APIs** | ✅ Supported | `CreateDb()`, `DropDb()`, and `ExecAdminCmd()` (`SYSPROC.ADMIN_CMD`) |
-| **Kerberos SSO & GSSAPI Auth** | ✅ Supported | Network directory authentication (`SECMEC 7/11`) via `ccache`, `keytab`, or domain credentials |
-| **Trusted Context & User Switching** | ✅ Supported | Microsecond user/tenant identity transition (`SwitchUser`, `WithUser`) on pooled connections |
-| **Client Workstation & Accounting** | ✅ Supported | Workload identification & APM registers (`CLIENT APPLNAME`, `WRKSTNNAME`, `USERID`, `ACCTNG`) |
-| **Adaptive Block Fetching** | ✅ Supported | Configurable buffer block size via DSN (`?block_size=131072`) with DRDA `QRYBLKSZ` |
-| **Query Cancellation (`SQLINTR`)** | ✅ Supported | Asynchronous cancellation signal and timeout aborts via DRDA `SQLINTR` (`0x2007`) |
-| **Security Hardening & Redaction** | ✅ Supported | Sensitive fields redacted in `fmt.Stringer`, regex identifier validation, zero data races |
+| **Pure Go Engine** | Supported | 100% Go implementation with native DRDA/DDM binary protocol parser |
+| **Authentication & Handshake** | Supported | SECMEC 3 (Plain), SECMEC 9 (Diffie-Hellman + DES), EBCDIC CP500 exchange |
+| **TLS/SSL & mTLS Encryption** | Supported | Native TLS 1.2+ (`crypto/tls`) with custom Root CAs and client certificate/key authentication |
+| **`database/sql` Registration** | Supported | `sql.Register("db2", ...)` with standard URL and Key-Value DSN parsers |
+| **Connection Pooling & Liveness** | Supported | `db.PingContext()`, `driver.Connector`, transparent pool lifecycle management |
+| **Transactions & ACID Isolation** | Supported | `db.BeginTx()`, `tx.Commit()`, `tx.Rollback()` with strict auto-commit management |
+| **DDL & DML Execution** | Supported | `db.ExecContext()` for `CREATE`, `DROP`, `INSERT`, `UPDATE`, `DELETE` |
+| **Query & Streaming Rows** | Supported | `db.QueryContext()`, `db.QueryRowContext()`, `rows.Scan()`, `rows.Columns()` |
+| **Type Conversions & NULLs** | Supported | Integers, Varchars, Floats, Dates, Timestamps, Decimals, Booleans, `sql.Null*` |
+| **Prepared Statements & Params** | Supported | Positional `?` parameter binding (`FDODSC`, `FDODTA`, `SQLDTA`) with single roundtrip reuse |
+| **LOBs (BLOB / CLOB / DBCLOB)** | Supported | Large binary and text streaming via DRDA `EXTDTA` (`0x146C`) packet collection |
+| **Stored Procedures & `sql.Out`** | Supported | `CALL procedure(?, ...)` supporting `IN`, `OUT`, and `INOUT` parameters via `SQLDTARD` |
+| **Multi-Result Sets** | Supported | Full `driver.RowsNextResultSet` implementation for procedures returning multiple cursors |
+| **`Result.LastInsertId()`** | Supported | Automatic identity recovery on `INSERT` via `IDENTITY_VAL_LOCAL()` |
+| **Extended Data Types** | Supported | `DECFLOAT(16/34)` (IEEE 754-2008 DPD), `XML` documents, `TIMESTAMP WITH TIME ZONE` |
+| **Graphic & DBCS Types** | Supported | `GRAPHIC`, `VARGRAPHIC`, `LONG VARGRAPHIC`, `DBCLOB`, `CODEUNITS32` |
+| **Batch / Array Parameter DML** | Supported | High-throughput bulk operations with primitive slices (`[]int`, `[]string`, `[]float64`) |
+| **Admin DB Management & APIs** | Supported | `CreateDb()`, `DropDb()`, and `ExecAdminCmd()` (`SYSPROC.ADMIN_CMD`) |
+| **Kerberos SSO & GSSAPI Auth** | Supported | Network directory authentication (`SECMEC 7/11`) via `ccache`, `keytab`, or domain credentials |
+| **Trusted Context & User Switching** | Supported | Microsecond user/tenant identity transition (`SwitchUser`, `WithUser`) on pooled connections |
+| **Client Workstation & Accounting** | Supported | Workload identification & APM registers (`CLIENT APPLNAME`, `WRKSTNNAME`, `USERID`, `ACCTNG`) |
+| **Adaptive Block Fetching** | Supported | Configurable buffer block size via DSN (`?block_size=131072`) with DRDA `QRYBLKSZ` |
+| **Query Cancellation (`SQLINTR`)** | Supported | Asynchronous cancellation signal and timeout aborts via DRDA `SQLINTR` (`0x2007`) |
+| **Security Hardening & Redaction** | Supported | Sensitive fields redacted in `fmt.Stringer`, regex identifier validation, zero data races |
 
 ---
 
-## 📦 Installation
+## Installation
 
 ```bash
 go get github.com/go-db2/go-db2
@@ -66,7 +68,7 @@ Requires Go **1.22** or higher.
 
 ---
 
-## 🔧 Connection String & DSN Reference
+## Connection String & DSN Reference
 
 `go-db2` supports both standard **URL format** and **Key-Value (ODBC-style) format**.
 
@@ -84,7 +86,7 @@ db2://db2inst1:SecretPass123@127.0.0.1:50000/TESTDB?ssl=false
 host=127.0.0.1;port=50000;database=TESTDB;uid=db2inst1;pwd=SecretPass123;ssl=false;
 ```
 
-### 📋 Supported DSN Parameters
+### Supported DSN Parameters
 
 | Parameter | Type | Default | Description |
 | :--- | :---: | :---: | :--- |
@@ -106,7 +108,7 @@ host=127.0.0.1;port=50000;database=TESTDB;uid=db2inst1;pwd=SecretPass123;ssl=fal
 
 ---
 
-## 💡 Code Examples
+## Code Examples
 
 ### 1. Basic Connection & Query
 ```go
@@ -234,7 +236,7 @@ result, err := db.ExecContext(ctx,
 
 ---
 
-## ⚡ Performance & Conformance Benchmarks
+## Performance & Conformance Benchmarks
 
 `go-db2` includes a fully automated containerized benchmark and semantic conformance suite comparing it directly against the official IBM CGO driver (`go_ibm_db`).
 
@@ -245,21 +247,21 @@ Verified against live IBM Db2: **100% PASS** (8/8 test suites). All scalar types
 
 | Scenario | `go-db2` (Pure Go) | `go_ibm_db` (CGO / CLI) | Speedup / Ratio | Memory / Allocations |
 | :--- | :---: | :---: | :---: | :---: |
-| **Simple Single-Row SELECT** | **8.37 µs** | 259.84 µs | **31.05x faster** 🚀 | **1.3 KB** vs 1.9 KB |
-| **Fetch 1,000 Rows Scan** | **16.37 µs** | 5.35 ms | **326.80x faster** 🚀 | **1.3 KB** vs 97.9 KB (73x less) |
-| **Prepared Statement INSERT** | **14.90 µs** | 18.74 ms | **1.257,79x faster** 🚀 | **2.4 KB** vs 11.5 KB |
-| **Read 500KB BLOB Payload** | **29.12 µs** | 1.94 ms | **66.74x faster** 🚀 | **1.3 KB** vs 1.05 MB (770x less) |
+| **Simple Single-Row SELECT** | **8.37 µs** | 259.84 µs | **31.05x faster** | **1.3 KB** vs 1.9 KB |
+| **Fetch 1,000 Rows Scan** | **16.37 µs** | 5.35 ms | **326.80x faster** | **1.3 KB** vs 97.9 KB (73x less) |
+| **Prepared Statement INSERT** | **14.90 µs** | 18.74 ms | **1.257,79x faster** | **2.4 KB** vs 11.5 KB |
+| **Read 500KB BLOB Payload** | **29.12 µs** | 1.94 ms | **66.74x faster** | **1.3 KB** vs 1.05 MB (770x less) |
 
-> 📖 **Full Report**: See [benchmarks/RESULTS.md](benchmarks/RESULTS.md) for full benchmark breakdown.
+> **Full Report**: See [benchmarks/RESULTS.md](benchmarks/RESULTS.md) for full benchmark breakdown.
 >
-> 🐳 **Reproduce in Container (Zero host setup required)**:
+> **Reproduce in Container (Zero host setup required)**:
 > ```bash
 > ./benchmarks/run_benchmark.sh
 > ```
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ### 1. Run Unit Tests & Security Race Checks
 ```bash
@@ -301,13 +303,6 @@ go run examples/client_accounting_demo/main.go
 
 ---
 
-## 📋 Planning & Project Architecture
-
-- 🇬🇧 **[PROJECT_PLAN.md](PROJECT_PLAN.md)** (English)
-- 🇧🇷 **[PROJECT_PLAN.pt-BR.md](PROJECT_PLAN.pt-BR.md)** (Português do Brasil)
-
----
-
-## 📜 License
+## License
 
 Licensed under the MIT License. See [LICENSE](LICENSE) for details.
