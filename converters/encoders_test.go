@@ -65,6 +65,62 @@ func TestEncodePackedDecimalParam_InvalidPrecScaleBounds(t *testing.T) {
 	}
 }
 
+func TestToBool(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    any
+		expected bool
+	}{
+		{"Bool_True", true, true},
+		{"Bool_False", false, false},
+		{"Int_Positive", 1, true},
+		{"Int_Negative", -1, true},
+		{"Int_Zero", 0, false},
+		{"Int8_Positive", int8(1), true},
+		{"Int8_Zero", int8(0), false},
+		{"Int16_Positive", int16(1), true},
+		{"Int16_Zero", int16(0), false},
+		{"Int32_Positive", int32(1), true},
+		{"Int32_Zero", int32(0), false},
+		{"Int64_Positive", int64(42), true},
+		{"Int64_Negative", int64(-42), true},
+		{"Int64_Zero", int64(0), false},
+		{"Uint_Positive", uint(1), true},
+		{"Uint_Zero", uint(0), false},
+		{"Uint8_Positive", uint8(1), true},
+		{"Uint8_Zero", uint8(0), false},
+		{"Uint16_Positive", uint16(1), true},
+		{"Uint16_Zero", uint16(0), false},
+		{"Uint32_Positive", uint32(1), true},
+		{"Uint32_Zero", uint32(0), false},
+		{"Uint64_Positive", uint64(1), true},
+		{"Uint64_Zero", uint64(0), false},
+		{"Float32_Positive", float32(1.5), true},
+		{"Float32_Zero", float32(0.0), false},
+		{"Float64_Positive", 1.0, true},
+		{"Float64_Zero", 0.0, false},
+		{"String_True_Lowercase", "true", true},
+		{"String_True_Uppercase", "TRUE", true},
+		{"String_True_MixedCase", "True", true},
+		{"String_One", "1", true},
+		{"String_False", "false", false},
+		{"String_Zero", "0", false},
+		{"String_Random", "random", false},
+		{"String_Empty", "", false},
+		{"Default_Nil", nil, false},
+		{"Default_ByteSlice", []byte{1}, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := toBool(tc.input)
+			if got != tc.expected {
+				t.Errorf("toBool(%v) = %v; want %v", tc.input, got, tc.expected)
+			}
+		})
+	}
+}
+
 func TestEncodePackedDecimalParam_TableDriven(t *testing.T) {
 	testCases := []struct {
 		name        string
