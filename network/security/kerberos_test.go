@@ -256,3 +256,120 @@ func TestParseKeytab_MalformedNegativeLength(t *testing.T) {
 		t.Fatal("expected error when parsing keytab entry with out-of-bounds negative length, got nil")
 	}
 }
+
+func TestBuildGSSAPIToken_LargePayload(t *testing.T) {
+	// Create payload larger than 65,535 bytes (e.g. 70,000 bytes)
+	largeAPReq := make([]byte, 70000)
+	for i := range largeAPReq {
+		largeAPReq[i] = byte(i % 256)
+	}
+
+	token, err := BuildGSSAPIToken(largeAPReq)
+	if err != nil {
+		t.Fatalf("BuildGSSAPIToken failed for large payload: %v", err)
+	}
+
+	if token[0] != 0x60 {
+		t.Fatalf("expected GSSAPI tag 0x60, got 0x%02X", token[0])
+	}
+
+	// For length 70015 (payload = 13 bytes OID/ID + 70000 bytes apReq = 70013),
+	// ASN.1 DER length encoding requires 0x83 (3-byte length: 0x01, 0x11, 0x5D)
+	if token[1] != 0x83 {
+		t.Fatalf("expected ASN.1 3-byte length tag 0x83, got 0x%02X", token[1])
+	}
+
+	decodedLen := int(token[2])<<16 | int(token[3])<<8 | int(token[4])
+	if decodedLen != len(token)-5 {
+		t.Fatalf("expected decoded length %d, got %d", len(token)-5, decodedLen)
+	}
+}
+
+func TestBuildGSSAPIToken_LengthBoundaryTransitions(t *testing.T) {
+	tests := []struct {
+		name            string
+		apReqSize       int
+		expectedTag     byte
+		headerHeaderLen int
+	}{
+		{
+			name:            "Boundary 65,535 bytes (0x82 tag)",
+			apReqSize:       65535 - 13, // total payload = 65,535
+			expectedTag:     0x82,
+			headerHeaderLen: 4, // 0x60 + 0x82 + 2 bytes len
+		},
+		{
+			name:            "Boundary 65,536 bytes (0x83 tag transition)",
+			apReqSize:       65536 - 13, // total payload = 65,536
+			expectedTag:     0x83,
+			headerHeaderLen: 5, // 0x60 + 0x83 + 3 bytes len
+		},
+		{
+			name:            "Boundary 16,777,215 bytes (0x83 tag)",
+			apReqSize:       16777215 - 13, // total payload = 16,777,215
+			expectedTag:     0x83,
+			headerHeaderLen: 5, // 0x60 + 0x83 + 3 bytes len
+		},
+		{
+			name:            "Boundary 16,777,216 bytes (0x84 tag transition)",
+			apReqSize:       16777216 - 13, // total payload = 16,777,216
+			expectedTag:     0x84,
+			headerHeaderLen: 6, // 0x60 + 0x84 + 4 bytes len
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			apReq := make([]byte, tt.apReqSize)
+			token, err := BuildGSSAPIToken(apReq)
+			if err != nil {
+				t.Fatalf("BuildGSSAPIToken() error: %v", err)
+			}
+
+			if token[0] != 0x60 {
+				t.Fatalf("expected ASN.1 tag 0x60, got 0x%02X", token[0])
+			}
+
+			if token[1] != tt.expectedTag {
+				t.Fatalf("expected length tag 0x%02X, got 0x%02X", tt.expectedTag, token[1])
+			}
+
+			expectedTotalLen := tt.headerHeaderLen + tt.apReqSize + 13
+			if len(token) != expectedTotalLen {
+				t.Fatalf("expected token total length %d, got %d", expectedTotalLen, len(token))
+			}
+		})
+	}
+}
+
+func TestParseKeytab_TruncatedComponent(t *testing.T) {
+	// Construct keytab entry with numComponents = 2, but provide only 1 component and truncate entryData
+	var entryBody []byte
+	entryBody = append(entryBody, 0x00, 0x02) // numComponents = 2
+	entryBody = append(entryBody, 0x00, 0x04) // realmLen = 4
+	entryBody = append(entryBody, []byte("TEST")...)
+	// Component 1 ("comp1")
+	entryBody = append(entryBody, 0x00, 0x05)
+	entryBody = append(entryBody, []byte("comp1")...)
+	// Omit Component 2 - truncated!
+
+	var data []byte
+	data = append(data, 0x05, 0x02) // Keytab v2 header
+	eLen := uint32(len(entryBody))
+	data = append(data, byte(eLen>>24), byte(eLen>>16), byte(eLen>>8), byte(eLen&0xFF))
+	data = append(data, entryBody...)
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("ParseKeytab panicked on truncated component: %v", r)
+		}
+	}()
+
+	entries, err := ParseKeytab(data)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(entries) != 0 {
+		t.Fatalf("expected 0 entries for truncated component keytab, got %d", len(entries))
+	}
+}
