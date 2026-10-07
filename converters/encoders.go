@@ -563,7 +563,7 @@ func toBytes(val any) []byte {
 	case string:
 		return []byte(v)
 	default:
-		return []byte(fmt.Sprint(v))
+		return fmt.Append(nil, v)
 	}
 }
 
