@@ -102,3 +102,9 @@
 
 **Learning:** Declaring a temporary stack buffer (`var stackBuf [128]byte`) at the top level of a decoder function like `DecodeField` forces Go's escape analysis to move `stackBuf` to the heap for ALL execution paths (including scalar integer, smallint, float, and boolean branches that never use `stackBuf`), adding 128 bytes of heap allocation to every function call. Moving `stackBuf` declarations down into individual `switch` cases localizes variable scope so scalar numeric branches avoid heap allocations entirely. This accelerated integer field decoding by ~1.9x (181.1 ns -> 94.6 ns/op) and reduced heap memory allocation by 70% (184 B -> 56 B/op).
 **Action:** When using temporary stack array buffers inside `switch` statements, declare the stack buffers locally inside the individual `case` clauses that need them rather than at the top level of the function to prevent non-buffer branches from incurring heap allocation overhead.
+
+## 2026-10-07 - Preserving Compiler Inlining Budget in Fast String Decoders (DecodeCP500)
+
+**Learning:** `DecodeCP500` is currently tuned to an AST complexity cost of 79, fitting just beneath the Go compiler's automatic inlining budget of 80 (`can inline DecodeCP500 with cost 79`). Because it inlines directly into callers, simple callers achieve ~67 ns/op with 0 heap allocations. Introducing intermediate stack buffers (such as `var stackOut [64]byte`) or branch conditionals raises the AST cost to 95 (`cost 95 exceeds budget 80`), disabling compiler inlining entirely. This introduces function call overhead and forces the returned string to escape to the heap, degrading throughput by ~90% (from 67.3 ns to 128.0 ns/op) and introducing heap allocations (8 B/op, 1 alloc/op).
+**Action:** Do NOT introduce stack buffers, conditional branches, or helper calls to `DecodeCP500`. Keep `DecodeCP500` strictly within the Go compiler inlining cost threshold (< 80) to preserve zero-allocation inlining at call sites.
+
